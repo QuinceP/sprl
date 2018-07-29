@@ -1,20 +1,22 @@
 import tcod.tcod as libtcod
 
+import consts
+from character_creation import render_character_creation_screen
 from components.equipment import Equipment
 from components.equippable import Equippable
-from components.level import Level
-from equipment_slots import EquipmentSlots
-from input_handlers import handle_keys, handle_mouse, handle_main_menu
-from entity import Entity, get_blocking_entities_at_location
-from menus import main_menu, message_box
-from render_functions import clear_all, render_all, RenderOrder
-from map_objects.game_map import GameMap
-from fov_functions import initialize_fov, recompute_fov
-from game_states import GameStates
 from components.fighter import Fighter
 from components.inventory import Inventory
+from components.level import Level
 from death_functions import kill_monster, kill_player
+from entity import Entity, get_blocking_entities_at_location
+from equipment_slots import EquipmentSlots
+from fov_functions import initialize_fov, recompute_fov
 from game_messages import MessageLog, Message
+from game_states import GameStates
+from input_handlers import handle_keys, handle_mouse, handle_main_menu, handle_character_creation_screen
+from map_objects.game_map import GameMap
+from menus import main_menu, message_box
+from render_functions import clear_all, render_all, RenderOrder
 
 
 def main():
@@ -23,8 +25,7 @@ def main():
     window_title = 'game'
     panel_height = 10
 
-    libtcod.console_set_custom_font('assets/fonts/Taffer_20x20.png', libtcod.FONT_LAYOUT_ASCII_INROW)
-
+    libtcod.console_set_custom_font(consts.FONT, libtcod.FONT_LAYOUT_ASCII_INROW)
     libtcod.console_init_root(screen_width, screen_height, window_title, False)
 
     con = libtcod.console_new(screen_width, screen_height)
@@ -50,12 +51,8 @@ def main():
         if show_main_menu:
             main_menu(con, main_menu_background_image, screen_width,
                       screen_height)
-
-            if show_load_error_message:
-                message_box(con, 'No save game to load', 50, screen_width, screen_height)
-
+            show_load_error(con, show_load_error_message, screen_width, screen_height)
             libtcod.console_flush()
-
             action = handle_main_menu(key)
 
             new_game = action.get('new_game')
@@ -65,9 +62,7 @@ def main():
             if show_load_error_message and (new_game or load_saved_game or exit_game):
                 show_load_error_message = False
             elif new_game:
-                # player, entities, game_map, message_log, game_state = get_game_variables(constants)
                 game_state = GameStates.PLAYERS_TURN
-
                 show_main_menu = False
             elif load_saved_game:
                 try:
@@ -80,9 +75,39 @@ def main():
 
         else:
             libtcod.console_clear(con)
-            play_game()
+            character_creation(con, screen_width, screen_height)
+            # play_game()
 
             show_main_menu = True
+
+
+def show_load_error(con, show_load_error_message, screen_width, screen_height):
+    if show_load_error_message:
+        message_box(con, 'No save game to load', 50, screen_width, screen_height)
+
+
+def character_creation(con, screen_width, screen_height):
+    game_state = GameStates.CHARACTER_CREATION
+    render_character_creation_screen(con, screen_width, screen_height, game_state)
+    key = libtcod.Key()
+    mouse = libtcod.Mouse()
+
+    while not libtcod.console_is_window_closed():
+        libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS | libtcod.EVENT_MOUSE, key, mouse)
+        action = handle_character_creation_screen(key)
+        # mouse_action = handle_mouse(mouse)
+        exit = action.get('exit')
+        new_game = action.get('new_game')
+        reroll = action.get('reroll')
+
+        if exit:
+            break
+        elif new_game:
+            play_game()
+        elif reroll:
+            render_character_creation_screen(con, screen_width, screen_height, game_state)
+
+    return
 
 
 def play_game():
@@ -140,7 +165,7 @@ def play_game():
     player.inventory.add_item(dagger)
     player.equipment.toggle_equip(dagger)
 
-    libtcod.console_set_custom_font('assets/fonts/Taffer_20x20.png', libtcod.FONT_LAYOUT_ASCII_INROW)
+    libtcod.console_set_custom_font(consts.FONT, libtcod.FONT_LAYOUT_ASCII_INROW)
 
     libtcod.console_init_root(screen_width, screen_height, 'libtcod tutorial revised', False)
 

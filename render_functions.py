@@ -1,7 +1,8 @@
-import tcod.tcod as libtcod
-from colors import DEFAULT_COLORS
 from enum import Enum, auto
 
+import tcod.tcod as libtcod
+
+from colors import DEFAULT_COLORS
 from game_states import GameStates
 from menus import inventory_menu, level_up_menu, character_screen
 

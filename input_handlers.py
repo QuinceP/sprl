@@ -148,3 +148,15 @@ def handle_character_screen(key):
         return {'exit': True}
 
     return {}
+
+
+def handle_character_creation_screen(key):
+    key_char = chr(key.c)
+    if key.vk == libtcod.KEY_ESCAPE:
+        return {'exit': True}
+    elif key_char == 'n':
+        return {'new_game': True}
+    elif key_char == 'r':
+        return {'reroll': True}
+
+    return {}

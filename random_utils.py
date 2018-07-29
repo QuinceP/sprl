@@ -27,3 +27,11 @@ def from_dungeon_level(table, dungeon_level):
             return value
 
     return 0
+
+
+def diceroll(num_dice, num_faces):
+    result = 0
+    for _ in range(num_dice):
+        result += randint(1, num_faces)
+
+    return result
